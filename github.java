@@ -39,8 +39,7 @@ public class PersonalTaskManagerViolations {
     }
 
     public JSONObject addNewTaskWithViolations(String title, String description,
-                                               String dueDateStr, String priorityLevel,
-                                               boolean isRecurring) {
+                                               String dueDateStr, String priorityLevel) {
 
         LocalDate dueDate = validateInput(title, dueDateStr, priorityLevel);
         if (dueDate == null) return null;
@@ -53,7 +52,7 @@ public class PersonalTaskManagerViolations {
         }
 
         String taskId = UUID.randomUUID().toString();
-        JSONObject newTask = createTaskObject(taskId, title, description, dueDate, priorityLevel, isRecurring);
+        JSONObject newTask = createTaskObject(taskId, title, description, dueDate, priorityLevel);
 
         tasks.add(newTask);
         saveTasksToDb(tasks);
@@ -69,26 +68,23 @@ public class PersonalTaskManagerViolations {
             "Mua sách",
             "Sách Công nghệ phần mềm.",
             "2025-07-20",
-            "Cao",
-            false
+            "Cao"
         );
 
-        System.out.println("\nThêm nhiệm vụ trùng lặp (minh họa DRY - lặp lại code đọc/ghi DB và kiểm tra trùng):");
+        System.out.println("\nThêm nhiệm vụ trùng lặp:");
         manager.addNewTaskWithViolations(
             "Mua sách",
             "Sách Công nghệ phần mềm.",
             "2025-07-20",
-            "Cao",
-            false
+            "Cao"
         );
 
-        System.out.println("\nThêm nhiệm vụ lặp lại (minh họa YAGNI - thêm tính năng không cần thiết ngay):");
+        System.out.println("\nThêm nhiệm vụ mới:");
         manager.addNewTaskWithViolations(
             "Tập thể dục",
             "Tập gym 1 tiếng.",
             "2025-07-21",
-            "Trung bình",
-            true 
+            "Trung bình"
         );
 
         System.out.println("\nThêm nhiệm vụ với tiêu đề rỗng:");
@@ -96,8 +92,7 @@ public class PersonalTaskManagerViolations {
             "",
             "Nhiệm vụ không có tiêu đề.",
             "2025-07-22",
-            "Thấp",
-            false
+            "Thấp"
         );
     }
 
@@ -151,7 +146,7 @@ public class PersonalTaskManagerViolations {
     }
 
     private JSONObject createTaskObject(String taskId, String title, String description,
-                                        LocalDate dueDate, String priorityLevel, boolean isRecurring) {
+                                        LocalDate dueDate, String priorityLevel) {
         JSONObject newTask = new JSONObject();
         newTask.put("id", taskId);
         newTask.put("title", title);
@@ -161,10 +156,6 @@ public class PersonalTaskManagerViolations {
         newTask.put("status", "Chưa hoàn thành");
         newTask.put("created_at", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
         newTask.put("last_updated_at", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
-        newTask.put("is_recurring", isRecurring);
-        if (isRecurring) {
-            newTask.put("recurrence_pattern", "Chưa xác định");
-        }
         return newTask;
     }
 }
