@@ -1,6 +1,3 @@
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -8,34 +5,16 @@ import java.time.format.DateTimeParseException;
 import java.util.UUID;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class PersonalTaskManagerViolations {
 
-    private static final String DB_FILE_PATH = "tasks_database.json";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final String DB_FILE_PATH = "tasks_database.json";
 
-    private static JSONArray loadTasksFromDb() {
-        JSONParser parser = new JSONParser();
-        try (FileReader reader = new FileReader(DB_FILE_PATH)) {
-            Object obj = parser.parse(reader);
-            if (obj instanceof JSONArray) {
-                return (JSONArray) obj;
-            }
-        } catch (IOException | ParseException e) {
-            logError("Lỗi khi đọc file database: " + e.getMessage());
-        }
-        return new JSONArray();
-    }
+    private final TaskRepository repository;
 
-    private static void saveTasksToDb(JSONArray tasksData) {
-        try (FileWriter file = new FileWriter(DB_FILE_PATH)) {
-            file.write(tasksData.toJSONString());
-            file.flush();
-        } catch (IOException e) {
-            logError("Lỗi khi ghi vào file database: " + e.getMessage());
-        }
+    public PersonalTaskManagerViolations() {
+        this.repository = new TaskRepository(DB_FILE_PATH);
     }
 
     public JSONObject addNewTaskWithViolations(String title, String description,
@@ -44,7 +23,7 @@ public class PersonalTaskManagerViolations {
         LocalDate dueDate = validateInput(title, dueDateStr, priorityLevel);
         if (dueDate == null) return null;
 
-        JSONArray tasks = loadTasksFromDb();
+        JSONArray tasks = repository.loadTasks();
 
         if (isDuplicateTask(tasks, title, dueDate)) {
             logError(String.format("Lỗi: Nhiệm vụ '%s' đã tồn tại với cùng ngày đến hạn.", title));
@@ -55,7 +34,7 @@ public class PersonalTaskManagerViolations {
         JSONObject newTask = createTaskObject(taskId, title, description, dueDate, priorityLevel);
 
         tasks.add(newTask);
-        saveTasksToDb(tasks);
+        repository.saveTasks(tasks);
 
         logInfo(String.format("Đã thêm nhiệm vụ mới thành công với ID: %s", taskId));
         return newTask;
