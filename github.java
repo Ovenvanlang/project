@@ -47,13 +47,9 @@ public class PersonalTaskManagerViolations {
 
         JSONArray tasks = loadTasksFromDb();
 
-        for (Object obj : tasks) {
-            JSONObject existingTask = (JSONObject) obj;
-            if (existingTask.get("title").toString().equalsIgnoreCase(title) &&
-                existingTask.get("due_date").toString().equals(dueDate.format(DATE_FORMATTER))) {
-                System.out.println(String.format("Lỗi: Nhiệm vụ '%s' đã tồn tại với cùng ngày đến hạn.", title));
-                return null;
-            }
+        if (isDuplicateTask(tasks, title, dueDate)) {
+            System.out.println(String.format("Lỗi: Nhiệm vụ '%s' đã tồn tại với cùng ngày đến hạn.", title));
+            return null;
         }
 
         String taskId = UUID.randomUUID().toString();
@@ -153,5 +149,18 @@ public class PersonalTaskManagerViolations {
         }
 
         return dueDate;
+    }
+
+    private boolean isDuplicateTask(JSONArray tasks, String title, LocalDate dueDate) {
+        for (Object obj : tasks) {
+            JSONObject existingTask = (JSONObject) obj;
+            String existingTitle = existingTask.get("title").toString();
+            String existingDueDate = existingTask.get("due_date").toString();
+            if (existingTitle.equalsIgnoreCase(title) &&
+                existingDueDate.equals(dueDate.format(DATE_FORMATTER))) {
+                return true;
+            }
+        }
+        return false;
     }
 }
