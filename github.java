@@ -24,7 +24,7 @@ public class PersonalTaskManagerViolations {
                 return (JSONArray) obj;
             }
         } catch (IOException | ParseException e) {
-            System.err.println("Lỗi khi đọc file database: " + e.getMessage());
+            logError("Lỗi khi đọc file database: " + e.getMessage());
         }
         return new JSONArray();
     }
@@ -34,7 +34,7 @@ public class PersonalTaskManagerViolations {
             file.write(tasksData.toJSONString());
             file.flush();
         } catch (IOException e) {
-            System.err.println("Lỗi khi ghi vào file database: " + e.getMessage());
+            logError("Lỗi khi ghi vào file database: " + e.getMessage());
         }
     }
 
@@ -47,7 +47,7 @@ public class PersonalTaskManagerViolations {
         JSONArray tasks = loadTasksFromDb();
 
         if (isDuplicateTask(tasks, title, dueDate)) {
-            System.out.println(String.format("Lỗi: Nhiệm vụ '%s' đã tồn tại với cùng ngày đến hạn.", title));
+            logError(String.format("Lỗi: Nhiệm vụ '%s' đã tồn tại với cùng ngày đến hạn.", title));
             return null;
         }
 
@@ -57,13 +57,13 @@ public class PersonalTaskManagerViolations {
         tasks.add(newTask);
         saveTasksToDb(tasks);
 
-        System.out.println(String.format("Đã thêm nhiệm vụ mới thành công với ID: %s", taskId));
+        logInfo(String.format("Đã thêm nhiệm vụ mới thành công với ID: %s", taskId));
         return newTask;
     }
 
     public static void main(String[] args) {
         PersonalTaskManagerViolations manager = new PersonalTaskManagerViolations();
-        System.out.println("\nThêm nhiệm vụ hợp lệ:");
+        logInfo("\nThêm nhiệm vụ hợp lệ:");
         manager.addNewTaskWithViolations(
             "Mua sách",
             "Sách Công nghệ phần mềm.",
@@ -71,7 +71,7 @@ public class PersonalTaskManagerViolations {
             "Cao"
         );
 
-        System.out.println("\nThêm nhiệm vụ trùng lặp:");
+        logInfo("\nThêm nhiệm vụ trùng lặp:");
         manager.addNewTaskWithViolations(
             "Mua sách",
             "Sách Công nghệ phần mềm.",
@@ -79,7 +79,7 @@ public class PersonalTaskManagerViolations {
             "Cao"
         );
 
-        System.out.println("\nThêm nhiệm vụ mới:");
+        logInfo("\nThêm nhiệm vụ mới:");
         manager.addNewTaskWithViolations(
             "Tập thể dục",
             "Tập gym 1 tiếng.",
@@ -87,7 +87,7 @@ public class PersonalTaskManagerViolations {
             "Trung bình"
         );
 
-        System.out.println("\nThêm nhiệm vụ với tiêu đề rỗng:");
+        logInfo("\nThêm nhiệm vụ với tiêu đề rỗng:");
         manager.addNewTaskWithViolations(
             "",
             "Nhiệm vụ không có tiêu đề.",
@@ -98,12 +98,12 @@ public class PersonalTaskManagerViolations {
 
     private LocalDate validateInput(String title, String dueDateStr, String priorityLevel) {
         if (title == null || title.trim().isEmpty()) {
-            System.out.println("Lỗi: Tiêu đề không được để trống.");
+            logError("Lỗi: Tiêu đề không được để trống.");
             return null;
         }
 
         if (dueDateStr == null || dueDateStr.trim().isEmpty()) {
-            System.out.println("Lỗi: Ngày đến hạn không được để trống.");
+            logError("Lỗi: Ngày đến hạn không được để trống.");
             return null;
         }
 
@@ -111,7 +111,7 @@ public class PersonalTaskManagerViolations {
         try {
             dueDate = LocalDate.parse(dueDateStr, DATE_FORMATTER);
         } catch (DateTimeParseException e) {
-            System.out.println("Lỗi: Ngày đến hạn không hợp lệ. Vui lòng sử dụng định dạng YYYY-MM-DD.");
+            logError("Lỗi: Ngày đến hạn không hợp lệ. Vui lòng sử dụng định dạng YYYY-MM-DD.");
             return null;
         }
 
@@ -125,7 +125,7 @@ public class PersonalTaskManagerViolations {
         }
 
         if (!isValidPriority) {
-            System.out.println("Lỗi: Mức độ ưu tiên không hợp lệ. Vui lòng chọn từ: Thấp, Trung bình, Cao.");
+            logError("Lỗi: Mức độ ưu tiên không hợp lệ. Vui lòng chọn từ: Thấp, Trung bình, Cao.");
             return null;
         }
 
@@ -157,5 +157,13 @@ public class PersonalTaskManagerViolations {
         newTask.put("created_at", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
         newTask.put("last_updated_at", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME));
         return newTask;
+    }
+
+    private static void logInfo(String message) {
+        System.out.println(message);
+    }
+
+    private static void logError(String message) {
+        System.err.println(message);
     }
 }
